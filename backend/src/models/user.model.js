@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
         required:[true,"email is required"],
         lowercase:true
     },
-    pasword:{
+    password:{
         type:String,
         required:[true,"password is required"],
     },
@@ -57,7 +57,8 @@ const userSchema = new mongoose.Schema({
 // hash the password before saving it to db
 userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next();
-    this.pasword = await bcrypt.hash(this.password,10);
+    this.password = await bcrypt.hash(this.password,10);
+    next()
 })
 
 // custom to chack password is correct 
@@ -77,7 +78,7 @@ userSchema.methods.generateAccessToken = function(){
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn:ACCESS_TOKEN_EXPIRES
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRES
         }
     )
 }
@@ -93,7 +94,7 @@ userSchema.methods.generateRefreshToken = function(){
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn:REFRESH_TOKEN_EXPIRES
+            expiresIn:process.env.REFRESH_TOKEN_EXPIRES
         }
     )
 }
