@@ -204,3 +204,76 @@ export const refreshAccessToken = asyncHandler( async(req , res) =>{
 
 
 })
+
+
+// endpoint to get profile
+
+export const getProfile = asyncHandler(async (req,res) =>{
+    const userId = req.params.id
+
+    if(!userId){
+        throw new ApiError(400,"user id is required");
+    }
+
+    const user = await User.findById(userId).select("-password -refreshToken");
+
+    if(!user){
+        throw new ApiError(404,"user not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user , "user profile fetched successfully")
+    )
+})
+
+// endpoint to update profile
+
+
+// endpoint to get suggested user 
+
+export const getSuggestedUsers = asyncHandler(async (req , res) =>{
+
+    // select user with following field only 
+    const currentUser = await User.findById(req.user._id).select("following");
+
+    if(!currentUser){
+        throw new ApiError(404,"user not found");
+    }
+    
+    // users that current user follows 
+    const followindIdsByCurrentUser = currentUser.following
+
+    // find user that are followed by the people that the current user following
+    const suggestedUsers = await User.find({
+        _id: { $nin: [...followindIdsByCurrentUser, req.user._id] }, 
+        following: { $in: followindIdsByCurrentUser },
+    })
+    .limit(10)
+    .select("-password -refreshToken");
+
+    // if no or less suggested user found then find new users
+    if(!suggestedUsers || suggestedUsers.length === 0 || suggestedUsers.length < 10){
+        
+        const newUsers = await User.find({
+            _id: { $nin: [...followindIdsByCurrentUser, req.user._id] },
+        })
+        .sort({createdAt:-1}) // sort by new users
+        .limit(10 - suggestedUsers.length)
+        .select("-password -refreshToken")
+
+        suggestedUsers.push(...newUsers);
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            suggestedUsers,
+            "suggested users fetched successfully"
+        )
+    )
+    
+})
