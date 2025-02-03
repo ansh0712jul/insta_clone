@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { getProfile, getSuggestedUsers, loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
+import upload from "../middlewares/multer.middleware.js";
 
 const router = Router()
 
-router.route("/sign-up").post(registerUser);
+router.route("/sign-up").post(upload.single("profileImg"), registerUser);
 router.route("/sign-in").post(loginUser);
 
 // secured routes

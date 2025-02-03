@@ -2,6 +2,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import User from "../models/user.model.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
 
 
 
@@ -35,7 +36,7 @@ export const registerUser = asyncHandler(async (req , res) =>{
     const {username, email , password} = req.body;
 
     if(
-        [username,email,password].some((field) => field.trim() === "")
+        [username,email,password].some((field) => field?.trim() === "")
     ){
         throw new ApiError(400,"all fields are required");
     }
@@ -50,11 +51,27 @@ export const registerUser = asyncHandler(async (req , res) =>{
         throw new ApiError(409,"user already exist")
     }
 
+
+    // enusre image is uploaded on cloudinary
+    const img = req.file?.path
+    if(!img){
+        throw new ApiError(400,"image is required");
+    }
+
+    // upload image on cloudinary
+    const imgUrl = await uploadOnCloudinary(img);
+
+    if(!imgUrl){
+        throw new ApiError(500,"something went wrong while uploading image on cloudinary");
+    }
+
+
     const user = await User.create({
         username:username.toLowerCase(),
         email,
-        password
-    
+        password,
+        profileImg:imgUrl.url
+
     });
     await user.save();
 
@@ -275,5 +292,5 @@ export const getSuggestedUsers = asyncHandler(async (req , res) =>{
             "suggested users fetched successfully"
         )
     )
-    
+
 })
