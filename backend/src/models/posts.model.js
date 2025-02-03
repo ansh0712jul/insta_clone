@@ -1,20 +1,17 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-    comment:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Comment"
-        }
-    ],
+    
     caption:{
         type:String,
         trim:true,
+        required:[true,"caption is required"]
 
     },
     image:{
         type:String,
-        trim:true
+        trim:true,
+        required:[true,"image is required"]
     },
     author:{
         type:mongoose.Schema.Types.ObjectId,
@@ -24,6 +21,12 @@ const postSchema = new mongoose.Schema({
         {
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
+        }
+    ],
+    comment:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Comment"
         }
     ]
 },
