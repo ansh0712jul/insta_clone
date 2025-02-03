@@ -247,6 +247,47 @@ export const getProfile = asyncHandler(async (req,res) =>{
 
 // endpoint to update profile
 
+export const updateProfile = asyncHandler(async (req,res) =>{
+
+    const userId = req.user._id;
+    const { bio , username } = req.body;
+    let profileImg = req.file?.path;
+
+
+     // Upload image if provided
+    if(profileImg){
+        const cloudinaryResponse = await uploadOnCloudinary(profileImg); 
+        profileImg = cloudinaryResponse.url;  
+    }
+
+    // find and update user 
+    const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+            $set: {
+                bio,
+                username,
+                profileImg
+            }
+        },
+        {
+            new : true , 
+            select:("-password -refreshToken")
+        }
+    )
+
+    if (!updatedUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, updatedUser , "user profile updated successfully"
+        
+    ))
+
+})
 
 // endpoint to get suggested user 
 
