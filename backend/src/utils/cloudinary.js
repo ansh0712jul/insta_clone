@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { response } from "express";
 import fs from "fs";
+import ApiError from "./apiError";
 
 
 // cloudinary Configuration
@@ -25,12 +26,15 @@ const uploadOnCloudinary = async (localFilePath) => {
         console.log("file has been uploaded successfully", response.url);
 
         return response;
+        
     } catch (error) {
-        console.log(error)
+        console.log("cloudinary upload error",error)
+        throw new ApiError(501 , error.message)
+        
+    }
+    finally{
         // remove the locally saved temporary files as the upload got failed 
         fs.unlinkSync(localFilePath)
-        return null;
-        
     }
 }
 
