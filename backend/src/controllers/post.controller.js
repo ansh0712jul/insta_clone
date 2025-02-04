@@ -4,6 +4,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import uploadOnCloudinary  from "../utils/cloudinary.js"
+import Comment from "../models/comments.model.js";
 
 // endpoint to add a new post 
 
@@ -60,3 +61,22 @@ export const addPost = asyncHandler(async (req , res) =>{
         new ApiResponse(201, addedPost,"post added successfully")
     )
 })
+
+// ednpoint to get all posts
+
+export const getAllPosts = asyncHandler(async (_, res) => {
+    const posts = await Post.find()
+        .sort({ createdAt: -1 })
+        .populate({ path: "author", select: "username profileImg" })
+        .populate({
+            path: "comments",
+            sort: { createdAt: -1 },
+            populate: { path: "author", select: "username profileImg" }
+        });
+
+    if (!posts || posts.length === 0) {
+        throw new ApiError(500, "Something went wrong while fetching posts");
+    }
+
+    return res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
+});
