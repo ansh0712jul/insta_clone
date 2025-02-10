@@ -45,7 +45,7 @@ export default function Login() {
       <Card className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg">
         <CardHeader>
           <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
-            Instagram
+            Vistagram
           </h1>
         </CardHeader>
         <CardContent>
@@ -96,7 +96,7 @@ export default function Login() {
           <p className="dark:text-gray-300">
             Don't have an account?{" "}
             <Link
-              to="/user/logout"
+              to="/user/signup"
               className="text-pink-500 hover:text-purple-500 font-semibold transition-colors duration-200"
             >
               Sign up
