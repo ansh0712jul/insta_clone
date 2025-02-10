@@ -1,3 +1,6 @@
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -5,11 +8,38 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Moon, Sun } from "lucide-react"
 import { Link } from "react-router-dom" 
+import { axiosInstance } from "@/config/axios"
+import { toast } from "sonner"
+
+
+
+// schema for zod validation
+const signUpSchema = z.object({
+  username: z.string()
+      .min(3, { message: "Username must be at least 3 characters" })
+      .nonempty({ message: "Username is required" })
+      .regex(/^[a-zA-Z0-9_]+$/, "Username must only contain letters, numbers, and underscores"),
+  password: z.string()
+      .min(4, {message:"Password must be at least 4 characters long"})
+      .max(12, {message:"Password must be at most 12 characters long"})
+      .nonempty("Password is required"),
+})
 
 export default function Login() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
   const [darkMode, setDarkMode] = useState(false)
+
+
+   // Initializing react hook form with zod resolver
+      const {
+          register,
+          handleSubmit,
+          formState: { errors },
+      } = useForm({
+          resolver: zodResolver(signUpSchema),
+      })
+
+
+
 
   useEffect(() => {
     
@@ -26,10 +56,22 @@ export default function Login() {
     }
   }, [darkMode])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Handle login logic here
-    console.log("Login attempted with:", username, password)
+  const submitHandler = async (data) => {
+    try {
+          const res = await axiosInstance.post("/user/sign-in", data, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+        })
+        if(res.data.success){
+          // console.log(res.data);
+          toast.success("welcome "+res.data.message.user.username);
+        }  
+    }catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message)
+    }
+   
   }
 
   const toggleDarkMode = () => {
@@ -49,17 +91,14 @@ export default function Login() {
           </h1>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="sr-only">
-                Username or Email
+                Username 
               </Label>
               <Input
-                id="username"
-                placeholder="Username or Email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
+                placeholder="Username "
+               {...register("username")}
                 className="bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
               />
             </div>
@@ -68,12 +107,10 @@ export default function Login() {
                 Password
               </Label>
               <Input
-                id="password"
+                
                 type="password"
                 placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+               {...register("password")}
                 className="bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
               />
             </div>
